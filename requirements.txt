@@ -15,3 +15,6 @@ docker==7.0.0  # For edge deployment (added)
 kubernetes==28.1.0  # For hybrid scaling (added)
 # Tests
 pytest==7.4.4
+# FastAPI extras for production
+httpx==0.26.0
+python-multipart==0.0.6  # For file uploads
