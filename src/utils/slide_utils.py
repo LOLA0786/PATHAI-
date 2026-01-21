@@ -97,3 +97,17 @@ def encrypt_data(data: bytes) -> bytes:
     return encrypted
 
 # More utils can be added later, e.g., metadata extraction
+
+def decrypt_data(encrypted_data: bytes) -> bytes:
+    """Decrypt data from storage (demo; integrate pvtvault core)
+    
+    Why: To retrieve original (de-ID'd) data securely.
+    Note: Uses same key as encrypt; in prod, key from secure vault.
+    """
+    try:
+        decrypted = cipher.decrypt(encrypted_data)
+        logger.info("Data decrypted", size=len(decrypted))
+        return decrypted
+    except Exception as e:
+        logger.error("Decryption error", error=str(e))
+        raise HTTPException(status_code=403, detail="Decryption failed - invalid key or data.")

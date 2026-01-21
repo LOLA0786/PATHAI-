@@ -2,13 +2,14 @@
 
 Endpoints:
 - /upload: Ingest slide, validate, de-ID, encrypt, store.
+- /retrieve/{slide_id}: Fetch encrypted slide, decrypt, return as bytes.
 Why Modular: This router handles all IMS logic; plug into main app.
 How Smooth: Async for large files, logs everything.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Response
 import structlog
-from src.utils.slide_utils import validate_slide, de_identify_slide, encrypt_data
+from src.utils.slide_utils import validate_slide, de_identify_slide, encrypt_data, decrypt_data
 import os
 import uuid  # For unique IDs
 
@@ -54,6 +55,42 @@ async def upload_slide(file: UploadFile = File(...)):
         logger.error("Upload error", error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@router.get("/retrieve/{slide_id}")
+async def retrieve_slide(slide_id: str):
+    """Retrieve decrypted slide by ID
+    
+    Args:
+        slide_id: UUID from upload
+    
+    Returns:
+        FileResponse with decrypted bytes (as 'application/octet-stream')
+    
+    Flow (Layman): Like downloading a locked photo - unlock and send.
+    Why: Access stored slides for viewer/AI.
+    Governance: Log access; later add auth (UAAL/RBAC).
+    Note: Returns bytes; client saves as .png or processes.
+    """
+    store_path = f"data/uploads/{slide_id}.enc"
+    if not os.path.exists(store_path):
+        logger.error("Slide not found", slide_id=slide_id)
+        raise HTTPException(status_code=404, detail="Slide not found")
+    
+    try:
+        with open(store_path, "rb") as f:
+            encrypted_data = f.read()
+        
+        decrypted_data = decrypt_data(encrypted_data)
+        
+        logger.info("Slide retrieved successfully", slide_id=slide_id)
+        # Return as binary response (client can save/process)
+        return Response(content=decrypted_data, media_type="application/octet-stream", headers={"Content-Disposition": f"attachment; filename={slide_id}.png"})
+    
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error("Retrieve error", error=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
+
 @router.get("/")
 async def ims_home():
-    return {"message": "PATHAI IMS - Your secure slide storage! Use /upload to ingest."}
+    return {"message": "PATHAI IMS - Your secure slide storage! Use /upload or /retrieve/{id}"}
