@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+*.egg-info/
+dist/
+build/
+*.egg
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log
+data/  # For large sample data; don't commit
+models/  # Pre-trained models; use git-lfs if needed
