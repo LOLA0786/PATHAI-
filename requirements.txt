@@ -18,3 +18,5 @@ pytest==7.4.4
 # FastAPI extras for production
 httpx==0.26.0
 python-multipart==0.0.6  # For file uploads
+# IMS extras
+uuid6==2024.1.12  # For unique IDs (uuid4 is stdlib, but this for future-proof)
