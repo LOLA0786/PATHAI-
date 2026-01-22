@@ -74,3 +74,20 @@ def sign_inference(result: Dict[str, any], key: bytes = b'demo_key') -> str:
     return signature
 
 # Prod: Add GPU queue with Celery
+
+def generate_ai_annotation(result: Dict[str, any], slide_id: str, level: int, x: int, y: int):
+    """Generate annotation from AI result (e.g., text box with score)
+    
+    Calls add_annotation.
+    """
+    ann_type = list(result.keys())[0]  # e.g., "pdl1_tps"
+    ann = {
+        "type": "text_box",
+        "coords": [x*256, y*256, 256, 256],  # Tile area
+        "text": f"{ann_type.upper()}: {result[ann_type]}",
+        "ai_generated": True,
+        "source": ann_type
+    }
+    add_annotation(slide_id, ann)
+    logger.info("AI annotation generated", slide_id=slide_id, ann=ann)
+    return ann

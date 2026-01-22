@@ -65,3 +65,21 @@ async def run_her2_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, us
 
 # Update /apps list
 # In list_apps: add {"name": "her2", "description": "HER2 quantification"}
+
+@router.get("/run/pdl1/{slide_id}")
+async def run_pdl1_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_pdl1_quant.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+# Add to /apps: {"name": "pdl1", "description": "PD-L1 quantification"}
+
+@router.get("/result/{task_id}")
+async def get_task_result(task_id: str, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    result = AsyncResult(task_id)
+    if result.ready():
+        ai_result = result.get()
+        # Auto-generate annotation (demo for tile 0/0/0; prod: pass coords)
+        ann = generate_ai_annotation(ai_result, "slide_id_from_task", 0, 0, 0)  # Fix: Extract slide_id from task meta (prod)
+        await sio.emit("new_annotation", ann, room="slide_id_from_task")  # Broadcast
+        return {"status": "done", "result": ai_result, "annotation": ann}
+    # ... (keep existing)

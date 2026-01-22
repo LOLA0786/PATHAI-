@@ -80,3 +80,21 @@ def async_her2_quant(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> D
     result["signature"] = sign_inference(result)
     logger.info("Async HER2 quant done", slide_id=slide_id, score=score)
     return result
+
+@app.task
+def async_pdl1_quant(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> Dict[str, any]:
+    """Async PD-L1 quantification (demo: TPS score % on tile)
+    
+    Prod: Segment tumor/immune cells, score expression.
+    """
+    tile_bytes = get_tile(slide_id, level, x, y)
+    img = np.array(Image.open(io.BytesIO(tile_bytes)).convert("RGB"))
+    
+    # Demo: % 'positive' pixels (brown staining)
+    positive_mask = (img[:,:,0] > 120) & (img[:,:,1] < 90) & (img[:,:,2] < 90)
+    tps_score = np.sum(positive_mask) / (img.shape[0] * img.shape[1]) * 100  # Tumor Proportion Score
+    
+    result = {"pdl1_tps": tps_score, "model_version": "stain-v1-demo"}
+    result["signature"] = sign_inference(result)
+    logger.info("Async PD-L1 quant done", slide_id=slide_id, score=tps_score)
+    return result
