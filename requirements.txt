@@ -1,4 +1,6 @@
-# Core for all modules
+# ============================================================================
+# CORE DEPENDENCIES
+# ============================================================================
 fastapi==0.104.1  # API framework for App Store and integrations
 uvicorn==0.24.0.post1  # ASGI server
 pydantic==2.5.3  # Data validation
@@ -6,33 +8,92 @@ openslide-python==1.3.1  # WSI handling (SVS/NDPI/MRXS)
 pillow==10.2.0  # Image processing
 numpy==1.26.3  # Arrays for AI/quant
 torch==2.1.2  # PyTorch for AI inference (GPU support)
-cryptography==41.0.7  # Encryption for vault
+torchvision==0.16.2  # For PyTorch vision models (e.g., pre-trained for quant)
 pyyaml==6.0.1  # Configs
 structlog==23.3.0  # Structured logging (added feature for traceability)
+
+# ============================================================================
+# BEAST FEATURE 1: ENCRYPTION & KEY MANAGEMENT
+# ============================================================================
+cryptography==41.0.7  # Encryption for vault
+boto3==1.34.34  # AWS SDK (KMS, S3, etc.)
+botocore==1.34.34  # AWS SDK core
+
+# ============================================================================
+# BEAST FEATURE 2: OBSERVABILITY & MONITORING
+# ============================================================================
 prometheus-client==0.19.0  # Monitoring metrics (added for scalability)
-pytesseract==0.3.10  # OCR for label redaction (governance)
-docker==7.0.0  # For edge deployment (added)
-kubernetes==28.1.0  # For hybrid scaling (added)
-# Tests
-pytest==7.4.4
-# FastAPI extras for production
-httpx==0.26.0
-python-multipart==0.0.6  # For file uploads
-# IMS extras
-uuid6==2024.1.12  # For unique IDs (uuid4 is stdlib, but this for future-proof)
-# AI Async & Models
-celery==5.3.6  # Async task queue
-redis==5.0.1  # Broker for Celery
-torchvision==0.16.2  # For PyTorch vision models (e.g., pre-trained for quant)
-# Viewer Enhancements
-fastapi-socketio==0.0.10  # For WebSockets (tele-review)
-pydicom==2.4.4  # For DICOM metadata scrubbing
-# Security Week 2
+
+# ============================================================================
+# BEAST FEATURE 3: OFFLINE SYNC
+# ============================================================================
+httpx==0.26.0  # Async HTTP for FastAPI test client + sync manager
+aiofiles==23.2.1  # Async file operations
+
+# ============================================================================
+# BEAST FEATURE 4: ABHA INTEGRATION
+# ============================================================================
+# (Uses httpx already installed)
+
+# ============================================================================
+# BEAST FEATURE 5: MULTI-LANGUAGE TRANSLATION
+# ============================================================================
+googletrans==4.0.0rc1  # Google Translate fallback
+# Note: Azure Translator uses httpx (already installed)
+
+# ============================================================================
+# BEAST FEATURE 6: SCREENING CAMPAIGNS
+# ============================================================================
+# (Uses SQLAlchemy already installed)
+
+# ============================================================================
+# BEAST FEATURE 7: BLOCKCHAIN AUDIT
+# ============================================================================
+web3==6.15.1  # Web3.py for Ethereum/Polygon integration
+eth-account==0.11.0  # Ethereum account management
+# Note: For production blockchain integration
+
+# ============================================================================
+# DATABASE & ORM
+# ============================================================================
+sqlalchemy==2.0.25  # Database ORM
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+
+# ============================================================================
+# SECURITY & AUTH
+# ============================================================================
 authlib==1.3.0  # OAuth/OIDC for FastAPI
 python-jose[cryptography]==3.3.0  # JWT handling
-# Tests
-pytest-mock==3.12.0  # Mocks for DB/OAuth
-# Integration Tests
-httpx==0.26.0  # Async HTTP for FastAPI test client
-# LIS Integration
+pytesseract==0.3.10  # OCR for label redaction (governance)
+pydicom==2.4.4  # For DICOM metadata scrubbing
+
+# ============================================================================
+# AI & ASYNC PROCESSING
+# ============================================================================
+celery==5.3.6  # Async task queue
+redis==5.0.1  # Broker for Celery
+
+# ============================================================================
+# INTEGRATIONS
+# ============================================================================
 hl7apy==1.3.3  # HL7 messaging
+fastapi-socketio==0.0.10  # For WebSockets (tele-review)
+
+# ============================================================================
+# FILE HANDLING
+# ============================================================================
+python-multipart==0.0.6  # For file uploads
+uuid6==2024.1.12  # For unique IDs (uuid4 is stdlib, but this for future-proof)
+
+# ============================================================================
+# DEPLOYMENT
+# ============================================================================
+docker==7.0.0  # For edge deployment (added)
+kubernetes==28.1.0  # For hybrid scaling (added)
+
+# ============================================================================
+# TESTING
+# ============================================================================
+pytest==7.4.4  # Test framework
+pytest-mock==3.12.0  # Mocks for DB/OAuth
+pytest-asyncio==0.23.3  # Async test support
