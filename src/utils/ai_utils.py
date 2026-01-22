@@ -91,3 +91,10 @@ def generate_ai_annotation(result: Dict[str, any], slide_id: str, level: int, x:
     add_annotation(slide_id, ann)
     logger.info("AI annotation generated", slide_id=slide_id, ann=ann)
     return ann
+
+def generate_heatmap(slide_id: str, level: int, x: int, y: int, app_type: str = "general") -> bytes:
+    # ... (keep existing)
+    if app_type == "tumor_cellularity":
+        # Demo: Green overlay for high cellularity
+        draw.rectangle([(0, 0), (256, 256)], fill=(0, 255, 0, int(cellularity / 100 * 128)))  # Intensity scale
+    # ...

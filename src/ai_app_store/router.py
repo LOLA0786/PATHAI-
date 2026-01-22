@@ -95,3 +95,22 @@ async def run_mitosis_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0,
     return {"task_id": task.id, "status": "queued"}
 
 # Add to /apps list: {"name": "tils", ...}, {"name": "mitosis", ...}
+
+@router.get("/run/tils/{slide_id}")
+async def run_tils_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_tils_quant.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+@router.get("/run/mitosis/{slide_id}")
+async def run_mitosis_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_mitosis_detect.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+# Add to /apps list: {"name": "tils", ...}, {"name": "mitosis", ...}
+
+@router.get("/run/tumor_cellularity/{slide_id}")
+async def run_tumor_cellularity_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_tumor_cellularity.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+# Add to /apps list: {"name": "tumor_cellularity", "description": "Tumor cellularity analysis for NGS/prognosis"}

@@ -134,3 +134,59 @@ def async_mitosis_detect(slide_id: str, level: int = 0, x: int = 0, y: int = 0) 
     result["signature"] = sign_inference(result)
     logger.info("Async Mitosis detect done", slide_id=slide_id, count=mitotic_count)
     return result
+
+@app.task
+def async_tils_quant(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> Dict[str, any]:
+    """Async TILs quantification (demo: % lymphocyte-like cells on tile)
+    
+    Prod: Segment immune cells (e.g., CD3/CD8) in tumor stroma.
+    """
+    tile_bytes = get_tile(slide_id, level, x, y)
+    img = np.array(Image.open(io.BytesIO(tile_bytes)).convert("RGB"))
+    
+    # Demo: Detect 'blue' nuclei (lymphocytes) vs tumor
+    blue_mask = (img[:,:,2] > 150) & (img[:,:,0] < 100) & (img[:,:,1] < 100)
+    tils_score = np.sum(blue_mask) / (img.shape[0] * img.shape[1]) * 100  # % area
+    
+    result = {"tils_score": tils_score, "model_version": "nuclei-v1-demo"}
+    result["signature"] = sign_inference(result)
+    logger.info("Async TILs quant done", slide_id=slide_id, score=tils_score)
+    return result
+
+@app.task
+def async_mitosis_detect(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> Dict[str, any]:
+    """Async Mitosis detection (demo: Count 'mitotic' figures on tile)
+    
+    Prod: Detect dividing cells (e.g., CNN for hotspots).
+    """
+    tile_bytes = get_tile(slide_id, level, x, y)
+    img = np.array(Image.open(io.BytesIO(tile_bytes)).convert("RGB"))
+    
+    # Demo: Count 'dark spots' (simplistic mitosis proxy)
+    gray = np.mean(img, axis=2)
+    mitotic_count = np.sum(gray < 50) / 1000  # Arbitrary normalization
+    
+    result = {"mitosis_count": mitotic_count, "model_version": "spot-v1-demo"}
+    result["signature"] = sign_inference(result)
+    logger.info("Async Mitosis detect done", slide_id=slide_id, count=mitotic_count)
+    return result
+
+@app.task
+def async_tumor_cellularity(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> Dict[str, any]:
+    """Async Tumor Cellularity analysis (demo: % tumor cells on tile via segmentation)
+    
+    Prod: U-Net for tumor/stroma/necrosis seg, compute TC score for NGS eligibility.
+    """
+    tile_bytes = get_tile(slide_id, level, x, y)
+    img = np.array(Image.open(io.BytesIO(tile_bytes)).convert("RGB"))
+    
+    # Demo PyTorch: Segment 'tumor' (e.g., dense cellular areas)
+    # Use simple threshold: High density (dark/compact) as tumor
+    gray = np.mean(img, axis=2)
+    tumor_mask = gray < 100  # Rough: Darker areas as tumor cells
+    cellularity = np.sum(tumor_mask) / (img.shape[0] * img.shape[1]) * 100  # % cellularity
+    
+    result = {"tumor_cellularity": cellularity, "model_version": "seg-v1-demo"}
+    result["signature"] = sign_inference(result)
+    logger.info("Async Tumor Cellularity done", slide_id=slide_id, score=cellularity)
+    return result
