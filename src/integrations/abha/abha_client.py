@@ -55,7 +55,7 @@ HIP_ID = os.getenv("HIP_ID", "PATHAI_HIP_001")  # Health Information Provider ID
 
 class ABHANumber(BaseModel):
     """ABHA Number model"""
-    abha_number: str = Field(..., regex=r"^\d{14}$")  # 14-digit number
+    abha_number: str = Field(..., pattern=r"^\d{14}$")  # 14-digit number (Pydantic v2)
     abha_address: Optional[str] = None  # username@abdm
     name: Optional[str] = None
     gender: Optional[str] = None
