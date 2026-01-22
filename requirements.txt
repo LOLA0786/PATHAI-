@@ -27,3 +27,6 @@ torchvision==0.16.2  # For PyTorch vision models (e.g., pre-trained for quant)
 # Viewer Enhancements
 fastapi-socketio==0.0.10  # For WebSockets (tele-review)
 pydicom==2.4.4  # For DICOM metadata scrubbing
+# Security Week 2
+authlib==1.3.0  # OAuth/OIDC for FastAPI
+python-jose[cryptography]==3.3.0  # JWT handling
