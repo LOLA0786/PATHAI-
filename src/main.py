@@ -66,3 +66,6 @@ if __name__ == "__main__":
 
 from fastapi_socketio import SocketManager
 sio = SocketManager(app=app)  # For tele-review WS
+
+from src.governance.deid_middleware import DeIDMiddleware
+app.add_middleware(DeIDMiddleware)
