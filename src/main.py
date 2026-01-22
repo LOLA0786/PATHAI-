@@ -63,3 +63,6 @@ async def health_check():
 if __name__ == "__main__":
     logger.info("Starting PATHAI server...")
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)
+
+from fastapi_socketio import SocketManager
+sio = SocketManager(app=app)  # For tele-review WS

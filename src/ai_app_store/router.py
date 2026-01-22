@@ -57,3 +57,11 @@ async def get_task_result(task_id: str, user: Dict[str, str] = Depends(check_rol
 @router.get("/")
 async def ai_home():
     return {"message": "PATHAI AI Store - Async apps! Trigger /run/*, poll /result/{id}"}
+
+@router.get("/run/her2/{slide_id}")
+async def run_her2_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_her2_quant.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+# Update /apps list
+# In list_apps: add {"name": "her2", "description": "HER2 quantification"}

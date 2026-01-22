@@ -24,3 +24,5 @@ uuid6==2024.1.12  # For unique IDs (uuid4 is stdlib, but this for future-proof)
 celery==5.3.6  # Async task queue
 redis==5.0.1  # Broker for Celery
 torchvision==0.16.2  # For PyTorch vision models (e.g., pre-trained for quant)
+# Viewer Enhancements
+fastapi-socketio==0.0.10  # For WebSockets (tele-review)

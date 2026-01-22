@@ -111,3 +111,76 @@ def decrypt_data(encrypted_data: bytes) -> bytes:
     except Exception as e:
         logger.error("Decryption error", error=str(e))
         raise HTTPException(status_code=403, detail="Decryption failed - invalid key or data.")
+
+import datetime
+import json
+
+def extract_metadata(slide: openslide.OpenSlide, original_filename: str) -> Dict[str, any]:
+    """Extract slide metadata for storage
+    
+    Args:
+        slide: Valid OpenSlide object
+        original_filename: Original upload name (sanitized)
+    
+    Returns:
+        Dict with key metadata (dimensions, levels, upload_time, etc.)
+    
+    Why: Store non-sensitive info for quick queries without decrypting full slide.
+    How: From OpenSlide properties + custom. Sanitize filename (remove potential PHI).
+    Note: DPDP-safe: No personal data.
+    """
+    metadata = {
+        "original_filename": os.path.basename(original_filename).replace(".svs", "").replace(".ndpi", "").replace(".mrxs", ""),  # Sanitize
+        "dimensions": slide.dimensions,  # (width, height)
+        "level_count": slide.level_count,
+        "upload_time": datetime.datetime.now().isoformat(),
+        "properties": dict(slide.properties)  # Vendor-specific, but de-ID'd
+    }
+    # Remove any potential identifiers from properties
+    keys_to_remove = [k for k in metadata["properties"] if "patient" in k.lower() or "id" in k.lower()]
+    for k in keys_to_remove:
+        del metadata["properties"][k]
+    
+    logger.info("Metadata extracted", keys=list(metadata.keys()))
+    return metadata
+
+def save_metadata(slide_id: str, metadata: Dict[str, any]):
+    """Save metadata as JSON next to .enc file
+    
+    Why: File-based DB for offline-first; easy to query.
+    """
+    meta_path = f"data/uploads/{slide_id}.json"
+    with open(meta_path, "w") as f:
+        json.dump(metadata, f, indent=4)
+    logger.info("Metadata saved", slide_id=slide_id, path=meta_path)
+
+def load_metadata(slide_id: str) -> Dict[str, any]:
+    """Load metadata JSON for slide
+    
+    Returns:
+        Dict if exists, else raises 404
+    """
+    meta_path = f"data/uploads/{slide_id}.json"
+    if not os.path.exists(meta_path):
+        logger.error("Metadata not found", slide_id=slide_id)
+        raise HTTPException(status_code=404, detail="Metadata not found")
+    with open(meta_path, "r") as f:
+        metadata = json.load(f)
+    return metadata
+
+def add_annotation(slide_id: str, annotation: Dict[str, any]):
+    """Add annotation to slide metadata (e.g., {"type": "circle", "coords": [x,y,r], "user": "id", "text": "note"})
+    
+    Why: Multi-user tele-review - append to list in JSON.
+    """
+    metadata = load_metadata(slide_id)
+    if "annotations" not in metadata:
+        metadata["annotations"] = []
+    metadata["annotations"].append(annotation)
+    save_metadata(slide_id, metadata)
+    logger.info("Annotation added", slide_id=slide_id, ann_type=annotation.get("type"))
+
+def get_annotations(slide_id: str) -> List[Dict[str, any]]:
+    """Get all annotations for slide"""
+    metadata = load_metadata(slide_id)
+    return metadata.get("annotations", [])

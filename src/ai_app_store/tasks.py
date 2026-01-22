@@ -62,3 +62,21 @@ def async_ki67_quant(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> D
     return result
 
 # Add heatmap as async if needed (for now sync, as tile-fast)
+
+@app.task
+def async_her2_quant(slide_id: str, level: int = 0, x: int = 0, y: int = 0) -> Dict[str, any]:
+    """Async HER2 quantification (demo: Score 0-3+ based on 'brown' intensity)
+    
+    Prod: Use trained model for IHC scoring.
+    """
+    tile_bytes = get_tile(slide_id, level, x, y)
+    img = np.array(Image.open(io.BytesIO(tile_bytes)).convert("RGB"))
+    
+    # Demo PyTorch: Avg 'brown' channel -> map to score
+    brown_intensity = np.mean(img[:,:,0] - img[:,:,2])  # Rough diff
+    score = min(3, int(brown_intensity / 50))  # 0-3+
+    
+    result = {"her2_score": f"{score}+", "model_version": "intensity-v1-demo"}
+    result["signature"] = sign_inference(result)
+    logger.info("Async HER2 quant done", slide_id=slide_id, score=score)
+    return result
