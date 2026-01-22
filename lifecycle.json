@@ -1,0 +1,1 @@
+{"Rules":[{"ID":"Glacier90","Status":"Enabled","Filter":{},"Transitions":[{"Days":90,"StorageClass":"GLACIER"}]}]}

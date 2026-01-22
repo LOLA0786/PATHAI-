@@ -43,3 +43,23 @@ CREATE INDEX idx_slides_patient ON slides(patient_id);
 -- TimescaleDB for logs (install extension first)
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 SELECT create_hypertable('audit_logs', 'timestamp');
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,  # admin, pathologist, viewer, researcher, auditor
+    permissions JSONB  # e.g., {"upload": true, "retrieve": true}
+);
+
+CREATE TABLE user_roles (
+    user_id TEXT NOT NULL,
+    role_id INT REFERENCES roles(id),
+    PRIMARY KEY (user_id, role_id)
+);
+
+-- Seed roles
+INSERT INTO roles (name, permissions) VALUES
+('admin', '{"*": true}'),
+('pathologist', '{"upload": true, "retrieve": true, "list": true, "metadata": true, "ai_run": true}'),
+('viewer', '{"list": true, "metadata": true}'),
+('researcher', '{"ai_run": true, "list": true}'),
+('auditor', '{"list": true, "metadata": true, "audit": true}');
