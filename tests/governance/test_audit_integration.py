@@ -69,3 +69,18 @@ async def test_log_immutable(mock_db):
             conn.execute(text("UPDATE audit_logs SET action = 'hacked' WHERE user_id = 'test'"))
 
 # Signature verify: In test, call hmac.verify on log
+
+@pytest.mark.asyncio
+async def test_audit_on_hl7_receive(mock_db, mocker):
+    mocker.patch('src.governance.auth.get_current_user', return_value={'user_id': 'lis_user', 'role': 'pathologist'})
+    
+    hl7_sample = "MSH|^~\&|LIS|FAC|PATHAI|FAC|20260122||ORM^O01|12345|P|2.5"
+    response = client.post("/hl7/receive", data=hl7_sample)
+    assert response.status_code == 200
+    
+    with mock_db.connect() as conn:
+        logs = conn.execute(text("SELECT * FROM audit_logs WHERE action = 'hl7_receive'")).fetchall()
+        assert len(logs) == 1
+        assert logs[0].signature is not None
+
+# Similar for send_hl7 (mock httpx)
