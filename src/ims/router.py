@@ -1,10 +1,11 @@
-"""IMS Router - Image Management System (upload, retrieve, list, metadata for slides)
+"""IMS Router - Image Management System (upload, retrieve, list, metadata, delete slides)
 
 Endpoints (all RBAC protected):
-- /upload: Ingest slide (admin/pathologist only)
-- /retrieve/{slide_id}: Fetch decrypted slide (admin/pathologist only)
+- /upload: Ingest slide (admin/pathologist)
+- /retrieve/{slide_id}: Fetch decrypted slide (admin/pathologist)
 - /list: List slides (admin/pathologist/viewer)
 - /metadata/{slide_id}: Get metadata (admin/pathologist/viewer)
+- /delete/{slide_id}: Delete slide & metadata (admin only)
 Why Modular: This router handles all IMS logic; plug into main app.
 How Smooth: Async for large files, logs everything.
 """
@@ -151,6 +152,37 @@ async def get_metadata(slide_id: str, user: Dict[str, str] = Depends(check_role(
         raise he
     except Exception as e:
         logger.error("Metadata retrieve error", error=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.delete("/delete/{slide_id}")
+async def delete_slide(slide_id: str, user: Dict[str, str] = Depends(check_role("delete"))):
+    """Delete a slide and its metadata by ID (admin only)
+    
+    Args:
+        slide_id: UUID of slide to delete
+    
+    Returns:
+        Dict with status message
+    
+    Flow (Layman): Like deleting a locked photo - remove file and details if allowed.
+    Why: Clean up storage; audit/compliance (logged).
+    Governance: Admin-only; irreversible - prod: add confirmation or soft-delete.
+    """
+    enc_path = f"data/uploads/{slide_id}.enc"
+    json_path = f"data/uploads/{slide_id}.json"
+    
+    if not os.path.exists(enc_path):
+        logger.error("Slide not found for delete", slide_id=slide_id)
+        raise HTTPException(status_code=404, detail="Slide not found")
+    
+    try:
+        os.remove(enc_path)
+        if os.path.exists(json_path):
+            os.remove(json_path)
+        logger.info("Slide deleted successfully", slide_id=slide_id, user_id=user["user_id"])
+        return {"status": "deleted", "message": "Slide and metadata removed"}
+    except Exception as e:
+        logger.error("Delete error", error=str(e), slide_id=slide_id)
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/")

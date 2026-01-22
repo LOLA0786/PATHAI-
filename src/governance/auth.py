@@ -19,7 +19,8 @@ ALLOWED_ROLES = {
     "upload": ["admin", "pathologist"],
     "retrieve": ["admin", "pathologist"],
     "list": ["admin", "pathologist", "viewer"],
-    "metadata": ["admin", "pathologist", "viewer"]
+    "metadata": ["admin", "pathologist", "viewer"],
+    "delete": ["admin"]  # High-privilege action
 }
 
 def get_current_user(authorization: str = Header(None)) -> Dict[str, str]:
