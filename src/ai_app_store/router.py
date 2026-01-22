@@ -83,3 +83,15 @@ async def get_task_result(task_id: str, user: Dict[str, str] = Depends(check_rol
         await sio.emit("new_annotation", ann, room="slide_id_from_task")  # Broadcast
         return {"status": "done", "result": ai_result, "annotation": ann}
     # ... (keep existing)
+
+@router.get("/run/tils/{slide_id}")
+async def run_tils_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_tils_quant.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+@router.get("/run/mitosis/{slide_id}")
+async def run_mitosis_app(slide_id: str, level: int = 0, x: int = 0, y: int = 0, user: Dict[str, str] = Depends(check_role("ai_run"))):
+    task = async_mitosis_detect.delay(slide_id, level, x, y)
+    return {"task_id": task.id, "status": "queued"}
+
+# Add to /apps list: {"name": "tils", ...}, {"name": "mitosis", ...}
