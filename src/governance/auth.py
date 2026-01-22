@@ -67,3 +67,5 @@ def check_role(endpoint: str):
     return _check_role
 
 # Integrate with UAAL: In prod, extend with policy_engine.py for dynamic policies.
+
+ALLOWED_ROLES["ai_run"] = ["admin", "pathologist"]
